@@ -1,11 +1,12 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager # Importing asynccontextmanager to manage the lifespan of the application, allowing us to perform startup and shutdown tasks such as seeding the database.
 
 from app.db.session import SessionLocal # Importing the SessionLocal from the session module to create a session for interacting with the database.
 from app.db.seed import seed_database # Importing the seed_database function from the seed module to seed the database with initial data.
 
 from app.api.admin.users import router as users_router
-
+from app.api.auth.google import router as auth_router
 
 @asynccontextmanager # only a decorator that allows us to define an asynchronous context manager, which is used to manage the lifespan of the application.
 
@@ -29,6 +30,17 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan) # Creating an instance of the FastAPI class and passing the lifespan function that we defined as an argument to the lifespan parameter. This will allow the FastAPI framework to call the lifespan function when the application starts up and shuts down, allowing us to perform startup and shutdown tasks such as seeding the database.
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 def root():
@@ -36,3 +48,4 @@ def root():
 
 
 app.include_router(users_router)
+app.include_router(auth_router)

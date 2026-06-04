@@ -1,15 +1,17 @@
-from fastapi import APIRouter, HTTPException, status
-from app.schemas.auth import GoogleAuthRequest, GoogleAuthResponse
+from fastapi import APIRouter
+from app.schemas.auth.google import GoogleAuthRequest
+from app.services.auth.google import AuthService
 
-
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/google")
-async def google_auth(request: GoogleAuthRequest) -> GoogleAuthResponse:
-    try:
-        # Call the service layer to handle Google authentication
-        auth_response = await AuthService.google_login(request.token)
-        print("Google Auth Response:", auth_response)
-        return auth_response
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+async def google_auth(request: GoogleAuthRequest):
+    print("Received Google auth request with token:")
+
+
+    token_info = await AuthService.verify_google_token(request.token)
+
+    print("Google token verification returned info:", token_info)
+
+    print("sending response with token info")
+    return {"success": True, "token_info": token_info}
