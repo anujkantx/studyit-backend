@@ -1,0 +1,1 @@
+# Run the app inside backend/ --> uvicorn app.main:app --reload
