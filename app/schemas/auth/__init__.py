@@ -1,2 +1,2 @@
-from .google import GoogleAuthRequest, GoogleAuthResponse, UserResponse
+from .google import GoogleAuthRequest, GoogleAuthResponse
 

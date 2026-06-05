@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession # Importing create_async_engine to create an asynchronous engine for connecting to the database, and AsyncSession to create asynchronous sessions for interacting with the database.
 from sqlalchemy.orm import sessionmaker # Importing sessionmaker to create a session factory that will be used to create sessions for interacting with the database.
 
-from app.core.config import settings # Importing settings to get the DATABASE_URL from the .env file
+from app.core.settings import settings # Importing settings to get the DATABASE_URL from the .env file
 
 engine = create_async_engine(
     settings.DATABASE_URL,
