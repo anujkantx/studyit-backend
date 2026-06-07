@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse # for set cookie in response
 
 from app.schemas.auth.google import GoogleAuthRequest, GoogleAuthResponse, UserInfo
 
@@ -24,16 +25,33 @@ async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get
     access_token = JWTService.create_access_token(payload)
     refresh_token = JWTService.create_refresh_token(payload)
 
-    return GoogleAuthResponse(
-        success=True,
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        user=UserInfo(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            avatar_url=user.avatar_url,
-            role=user.role.name
-        )
+    response = JSONResponse(
+        content={
+            "success": True,
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "avatar_url": user.avatar_url,
+                "role": user.role.name
+            },
+        }
     )
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax",
+        max_age=30 * 60 # 30 minutes for access token
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7  # 7 days for refresh token
+    )
+    return response
