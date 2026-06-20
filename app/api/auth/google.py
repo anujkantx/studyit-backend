@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse # for set cookie in response
 
-from app.schemas.auth.google import GoogleAuthRequest, GoogleAuthResponse, UserInfo
+from app.schemas.auth.google import GoogleAuthRequest
 
 from app.services.auth.google import GoogleAuthService
 from app.services.auth.jwt import JWTService
@@ -13,7 +13,7 @@ from app.db.dependencies import get_db
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-@router.post("/google", response_model=GoogleAuthResponse)
+@router.post("/google")
 async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get_db)):
 
     google_info = await GoogleAuthService.verify_google_token(request.token)
@@ -32,7 +32,6 @@ async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "avatar_url": user.avatar_url,
                 "role": user.role.name
             },
         }
@@ -43,6 +42,7 @@ async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get
         value=access_token,
         httponly=True,
         secure=False,  # Set to True in production with HTTPS
+        domain="localhost",  # Set to your domain in production
         samesite="lax",
         max_age=30 * 60 # 30 minutes for access token
     )
@@ -51,7 +51,22 @@ async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get
         value=refresh_token,
         httponly=True,
         secure=False,  # Set to True in production with HTTPS
+        domain="localhost",  # Set to your domain in production
         samesite="lax",
         max_age=60 * 60 * 24 * 7  # 7 days for refresh token
     )
     return response
+
+from fastapi import Request, HTTPException
+
+@router.get("/me")
+async def get_me(request:Request, db:AsyncSession = Depends(get_db)):
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(401)
+
+    payload = JWTService.verify_jwt_token(token)
+    user = await get_users.get_by_user_id(db, int(payload["sub"]))
+    return user
+

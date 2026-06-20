@@ -11,10 +11,12 @@ class UserResponse(BaseModel):
     name: str
     email: str
     phone: str | None
+    avatar_url: str | None
     status: str
     created_at: str
     updated_at: str | None
     last_login_at: str | None
+    role_id: int
     role: RoleResponse
 
 class CreateUserRequest(BaseModel):
