@@ -3,8 +3,6 @@ from pydantic import BaseModel
 class RoleResponse(BaseModel):
     id: int
     name: str
-    description: str | None
-    created_at: str
 
 class UserResponse(BaseModel):
     id: int
@@ -13,9 +11,6 @@ class UserResponse(BaseModel):
     phone: str | None
     avatar_url: str | None
     status: str
-    created_at: str
-    updated_at: str | None
-    last_login_at: str | None
     role_id: int
     role: RoleResponse
 

@@ -58,13 +58,17 @@ async def google_auth(request: GoogleAuthRequest, db: AsyncSession = Depends(get
     return response
 
 from fastapi import Request, HTTPException
+from app.schemas.users import UserResponse, RoleResponse
 
-@router.get("/me")
+@router.get("/me", response_model=UserResponse)
 async def get_me(request:Request, db:AsyncSession = Depends(get_db)):
     token = request.cookies.get("access_token")
 
     if not token:
-        raise HTTPException(401)
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated"
+        )
 
     payload = JWTService.verify_jwt_token(token)
     user = await get_users.get_by_user_id(db, int(payload["sub"]))
