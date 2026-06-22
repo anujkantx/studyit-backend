@@ -26,7 +26,6 @@ class Role(Base):
     
     id = Column(Integer, primary_key=True)
     name = Column(String(50), default=UserRole.STUDENT.value, nullable=False, unique=True)
-    description = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     users = relationship("User", back_populates="role")
@@ -51,6 +50,8 @@ class User(Base):
 
     role = relationship("Role", back_populates="users")
     student_profile = relationship("StudentProfile", back_populates="user", uselist=False) 
+
+    refresh_sessions = relationship("RefreshSession", back_populates="user", cascade="all, delete-orphan")
     # subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     # uploaded_resources = relationship("Resource", back_populates="uploader", foreign_keys="[Resource.uploaded_by]")
     # approved_resources = relationship("Resource", back_populates="approver", foreign_keys="[Resource.approved_by]")
@@ -74,3 +75,17 @@ class StudentProfile(Base):
     is_verified = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="student_profile")
+
+
+class RefreshSession(Base):
+    __tablename__ = "refresh_sessions"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    refresh_token_hash = Column(String(255), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_revoked = Column(Boolean, default=False, nullable=False)
+
+    user = relationship("User", back_populates="refresh_sessions")
+
+    

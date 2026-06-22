@@ -8,39 +8,53 @@ JWT_ALGORITHM = settings.JWT_ALGORITHM
 class JWTService:
 
     @staticmethod
-    def create_access_token(data: dict):
-        payload = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        payload.update({"exp": expire, "type": "access", "iat": datetime.now(timezone.utc)})
-        return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    def create_access_token(user_id: int):
+        now = datetime.now(timezone.utc)
+        payload = {
+            "sub": str(user_id),
+            "type": "access",
+            "iat": now,
+            "exp": now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            }
+
+        return jwt.encode(
+            payload,
+            JWT_SECRET_KEY,
+            algorithm=JWT_ALGORITHM
+            )
 
     @staticmethod
-    def create_refresh_token(data: dict):
-        payload = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-        payload.update({"exp": expire, "type": "refresh", "iat": datetime.now(timezone.utc)})
-        return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    def create_refresh_token(user_id: int):
+
+        now = datetime.now(timezone.utc)
+        payload = {
+            "sub": str(user_id),
+            "type": "refresh",
+            "iat": now,
+            "exp": now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+            }
+        return jwt.encode(
+            payload, 
+            JWT_SECRET_KEY, 
+            algorithm=JWT_ALGORITHM
+            )
 
     @staticmethod
     def verify_jwt_token(token: str):
         try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            payload = jwt.decode(
+                token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM]
+                )
             return payload
         except ExpiredSignatureError:
-            raise Exception("Token has expired")
+            raise Exception(
+                status_code=401, 
+                detail="Token has expired"
+                )
         except JWTError:
-            raise Exception("Invalid token")
-
-    @staticmethod
-    def verify_access_token(token: str):
-        payload = JWTService.verify_jwt_token(token)
-        if payload.get("type") != "access":
-            raise Exception("Invalid token type")
-        return payload
-
-    @staticmethod
-    def verify_refresh_token(token: str):
-        payload = JWTService.verify_jwt_token(token)
-        if payload.get("type") != "refresh":
-            raise Exception("Invalid token type")
-        return payload
+            raise Exception(
+                status_code=401,
+                detail="Invalid token"
+                )
